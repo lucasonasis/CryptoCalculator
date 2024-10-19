@@ -1,0 +1,121 @@
+﻿@page "/investment"
+@inject IHttpClientFactory HttpClientFactory
+@rendermode InteractiveServer
+
+<h3>Investment Calculator</h3>
+
+@if (cryptos != null)
+{
+    <label>Select Cryptocurrencies and Investment Plans:</label>
+    @foreach (var plan in investmentPlans)
+    {
+        <div>
+            <select @bind="plan.CryptoId">
+                @foreach (var crypto in cryptos)
+                {
+                    <option value="@crypto.Id">@crypto.Name</option>
+                }
+            </select>
+            <label>Start Date:</label>
+            <InputDate @bind-Value="plan.StartDate" />
+            <label>Monthly Investment:</label>
+            <InputNumber @bind-Value="plan.MonthlyInvestment" />
+            <label>Investment Day:</label>
+            <InputNumber @bind-Value="plan.InvestmentDay" />
+        </div>
+    }
+    <button @onclick="AddInvestmentPlan">Add Another Investment Plan</button>
+}
+
+<label>End Date:</label>
+<InputDate @bind-Value="_endDate" />
+
+<button @onclick="async () => await CalculateDCAInvestment()">Calculate</button>
+
+@if (investmentDataList.Any())
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Invested Amount</th>
+                <th>Crypto Amount</th>
+                <th>Value Today</th>
+                <th>ROI</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var data in investmentDataList)
+            {
+                <tr>
+                    <td>@data.Date.ToShortDateString()</td>
+                    <td>@data.InvestedAmount</td>
+                    <td>@data.CryptoAmount.ToString("F10")</td>
+                    <td>@data.ValueToday.ToString("F2")</td>
+                    <td>@data.ROI.ToString("F2")%</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No investment data found.</p>
+}
+
+@code {
+    private DateTime _endDate = DateTime.Now;
+    private List<CryptoCurrency> cryptos;
+    private List<InvestmentData> investmentDataList = new List<InvestmentData>();
+    private List<InvestmentPlan> investmentPlans = new List<InvestmentPlan>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetCurrencies();
+        AddInvestmentPlan(); // Add initial investment plan
+    }
+
+    public async Task GetCurrencies()
+    {
+        try
+        {
+            var client = HttpClientFactory.CreateClient("CryptoCalculator");
+            cryptos = await client.GetFromJsonAsync<List<CryptoCurrency>>("api/dca/currencies");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            return;
+        }
+    }
+
+    public void AddInvestmentPlan()
+    {
+        investmentPlans.Add(new InvestmentPlan
+            {
+                StartDate = new DateTime(2023, 1, 1),
+                MonthlyInvestment = 200,
+                InvestmentDay = 15
+            });
+    }
+
+    public async Task CalculateDCAInvestment()
+    {
+        try
+        {
+            var client = HttpClientFactory.CreateClient("CryptoCalculator");
+            var queryParams = string.Join("&", investmentPlans.Select((plan, index) =>
+                $"investmentPlans[{index}].CryptoId={plan.CryptoId}&investmentPlans[{index}].StartDate={plan.StartDate:yyyy-MM-dd}&investmentPlans[{index}].MonthlyInvestment={plan.MonthlyInvestment}&investmentPlans[{index}].InvestmentDay={plan.InvestmentDay}"));
+            var url = $"api/dca/calculate?{queryParams}&endDate={_endDate:yyyy-MM-dd}";
+            investmentDataList = await client.GetFromJsonAsync<List<InvestmentData>>(url);
+            if (!investmentDataList.Any())
+            {
+                Console.WriteLine("No investment data found.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+    }
+}

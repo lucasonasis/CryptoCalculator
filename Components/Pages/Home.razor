@@ -1,0 +1,22 @@
+﻿@page "/"
+@rendermode InteractiveServer
+
+
+<button class="btn btn-primary" @onclick="ButtonClicked">Click me</button>   
+
+<span>@text</span>
+
+<PageTitle>Home</PageTitle>
+
+<h1>Hello, world!</h1>
+
+Welcome to your new app.
+
+@code{
+
+    private string text = "Hello, world!";
+
+    private void ButtonClicked()
+    {
+        text = "Button clicked!";
+    }}
