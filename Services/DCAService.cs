@@ -47,13 +47,6 @@ namespace CryptoCalculator.Services
 
                 while (currentDate <= endDate)
                 {
-                    // Ensure the date is one of the valid dates (15th, 20th, 25th)
-                    if (currentDate.Day != plan.InvestmentDay)
-                    {
-                        currentDate = currentDate.AddMonths(1);
-                        continue;
-                    }
-
                     // Fetch the price for the current date
                     var priceData = await _dbContext.PriceData
                         .Where(p => p.CryptoCurrencyId == plan.CryptoId && p.Date.Date == currentDate.Date)
@@ -96,7 +89,93 @@ namespace CryptoCalculator.Services
 
             return investmentDataList;
         }
+
+
+        public async Task<List<InvestmentData>> CalculateDCAInvestmentForMultipleCryptos(
+          List<int> cryptoIds, DateTime startDate, DateTime endDate, decimal monthlyInvestment, List<decimal> investmentShares)
+        {
+            var investmentDataList = new List<InvestmentData>();
+            DateTime currentDate = startDate;
+            decimal totalInvested = 0;
+            var totalCryptoAmounts = new Dictionary<int, decimal>();
+
+            // Initialize totalCryptoAmounts for each cryptoId
+            foreach (var cryptoId in cryptoIds)
+            {
+                totalCryptoAmounts[cryptoId] = 0;
+            }
+
+            while (currentDate <= endDate)
+            {
+                decimal monthlyTotalInvestment = 0;
+
+                for (int i = 0; i < cryptoIds.Count; i++)
+                {
+                    if (currentDate < startDate)
+                        continue;
+
+                    // Fetch the price for the current date
+                    var priceData = await _dbContext.PriceData
+                        .Where(p => p.CryptoCurrencyId == cryptoIds[i] && p.Date.Date == currentDate.Date)
+                        .FirstOrDefaultAsync();
+
+                    if (priceData == null)
+                    {
+                        Console.WriteLine($"No price data found for {cryptoIds[i]} on {currentDate}");
+                        continue;
+                    }
+
+                    decimal price = priceData.Price;
+                    decimal cryptoInvestment = monthlyInvestment * investmentShares[i] / 100;
+
+                    // Calculate the amount of cryptocurrency bought
+                    decimal cryptoAmount = cryptoInvestment / price;
+
+                    // Update monthly totals
+                    monthlyTotalInvestment += cryptoInvestment;
+                    totalCryptoAmounts[cryptoIds[i]] += cryptoAmount;
+                }
+
+                // Update overall totals
+                totalInvested += monthlyTotalInvestment;
+
+                // Fetch the latest available price for each cryptocurrency and calculate the combined value today
+                decimal combinedValueToday = 0;
+                for (int i = 0; i < cryptoIds.Count; i++)
+                {
+                    var latestPriceData = await _dbContext.PriceData
+                        .Where(p => p.CryptoCurrencyId == cryptoIds[i])
+                        .OrderByDescending(p => p.Date)
+                        .FirstOrDefaultAsync();
+
+                    if (latestPriceData == null)
+                    {
+                        Console.WriteLine($"No latest price data found for {cryptoIds[i]}");
+                        continue;
+                    }
+
+                    decimal latestPrice = latestPriceData.Price;
+                    combinedValueToday += totalCryptoAmounts[cryptoIds[i]] * latestPrice;
+                }
+
+                // Calculate the ROI
+                decimal roi = (combinedValueToday - totalInvested) / totalInvested * 100;
+
+                // Add the data to the list
+                investmentDataList.Add(new InvestmentData
+                {
+                    Date = currentDate,
+                    InvestedAmount = totalInvested,
+                    CryptoAmount = totalCryptoAmounts.Values.Sum(),
+                    ValueToday = combinedValueToday,
+                    ROI = roi
+                });
+
+                // Move to the next month
+                currentDate = currentDate.AddMonths(1);
+            }
+
+            return investmentDataList;
+        }
     }
-
-
 }
