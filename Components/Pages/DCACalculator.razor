@@ -9,35 +9,45 @@
 
 @if (_cryptos != null)
 {
-    @foreach (var plan in _investmentPlans)
-    {
-        <MudItem xs="12" sm="12" md="12" lg="12" style="display:flex; align-items:center">
-            <MudItem xs="3" sm="3" md="3" lg="3">
-                <MudSelect Label="Currency" T="int" Required="true" Class="mx-2" Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter" @bind-Value="plan.CryptoId">
-                    @foreach (var crypto in _cryptos)
-                    {
-                        <MudSelectItem Value="@crypto.Id">@crypto.Name</MudSelectItem>
-                    }
-                </MudSelect>
-            </MudItem>
+    <MudItem style="display:flex; align-items:center">
+        <MudItem xs="10" sm="10" md="10" lg="10">
+                @foreach (var plan in _investmentPlans)
+                {
+                    <MudItem xs="12" sm="12" md="12" lg="12" style="display:flex; align-items:center">
+                        <MudItem xs="3" sm="3" md="3" lg="3">
+                            <MudSelect Label="Currency" T="int" Required="true" Class="mx-2" Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter" @bind-Value="plan.CryptoId">
+                                @foreach (var crypto in _cryptos)
+                                {
+                                    <MudSelectItem Value="@crypto.Id">@crypto.Name</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudItem>
 
-            <MudItem xs="3" sm="3" md="3" lg="3" Class="d-flex flex-column align-center justify-center">
-                    <MudDatePicker Required="true" Label="Start date" Variant="Variant.Outlined" DateFormat="dd/MM/yyyy" ShowWeekNumbers="true" @bind-Date="_startDate"/>
-            </MudItem>
+                        <MudItem xs="3" sm="3" md="3" lg="3" Class="d-flex flex-column align-center justify-center">
+                            <MudDatePicker Required="true" Label="Start date" Variant="Variant.Outlined" DateFormat="dd/MM/yyyy" ShowWeekNumbers="true" @bind-Date="plan.StartDate" />
+                        </MudItem>
 
-            <MudItem xs="3" sm="3" md="3" lg="3">
-                <MudNumericField Required="true" @bind-Value="plan.MonthlyInvestment" Label="Monthly investment" Variant="Variant.Text" Min="0" Max="999999999" />
-            </MudItem>
+                        <MudItem xs="3" sm="3" md="3" lg="3">
+                            <MudNumericField Required="true" @bind-Value="plan.MonthlyInvestment" Label="Monthly investment" Variant="Variant.Text" Min="0" Max="999999999" />
+                        </MudItem>
 
-            <MudItem xs="3" sm="3" md="3" lg="3" Class="d-flex flex-column align-center justify-center">
-                    <MudDatePicker Required="true" Label="End date" Variant="Variant.Outlined" DateFormat="dd/MM/yyyy" ShowWeekNumbers="true" @bind-Date="_endDate" />
-            </MudItem>
+                        <MudItem xs="3" sm="3" md="3" lg="3" Class="d-flex flex-column align-center justify-center">
+                            <MudDatePicker Required="true" Label="End date" Variant="Variant.Outlined" DateFormat="dd/MM/yyyy" ShowWeekNumbers="true" @bind-Date="_endDate" />
+                        </MudItem>
 
-            <MudItem xs="3" sm="3" md="3" lg="3" Class="d-flex flex-column align-center justify-center">
-                <MudButton @onclick="async () => await CalculateDCAInvestment()" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.Calculate" Color="Color.Primary">Calculate</MudButton>
-            </MudItem>
+
+                    </MudItem>
+                }
         </MudItem>
-    }
+        <MudItem xs="2" sm="2" md="2" lg="2">
+                <MudItem xs="12" sm="12" md="12" lg="12" Class="d-flex flex-column align-center justify-center">
+                    <MudButton @onclick="async () => await CalculateDCAInvestment()" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.Calculate" Color="Color.Primary">Calculate</MudButton>
+                </MudItem>
+        </MudItem>
+    </MudItem>
+
+
+
 
     <MudItem xs="3" sm="3" md="3" lg="3">
             <MudButton style="margin:10px" @onclick="AddInvestmentPlan" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.Add" Color="Color.Primary">Add another investment plan</MudButton>
@@ -60,7 +70,7 @@
                     <MudTh>ROI</MudTh>
                 </HeaderContent>
                 <RowTemplate>
-                    <MudTd>@context.Date.ToShortDateString()</MudTd>
+                    <MudTd>@context.Date?.ToShortDateString()</MudTd>
                     <MudTd>@context.InvestedAmount</MudTd>
                     <MudTd>@context.CryptoAmount.ToString("F10")</MudTd>
                     <MudTd>@context.ValueToday.ToString("F2")</MudTd>
@@ -88,7 +98,7 @@ else
 
         <MudItem xs="12" sm="12" md="12" lg="12" style="display:flex; align-items:center">
             <MudItem xs="3" sm="3" md="3" lg="3">
-                <MudSelect @bind-SelectedValues="selectedCryptoIds" MultiSelection="true" Label="Currencies" T="int" Required="true" Class="mx-2" Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
+                <MudSelect @bind-SelectedValues="_selectedCryptoIds" MultiSelection="true" Label="Currencies" T="int" Required="true" Class="mx-2" Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
                     @foreach (var crypto in _cryptos)
                     {
                         <MudSelectItem Value="@crypto.Id">@crypto.Name</MudSelectItem>
@@ -97,11 +107,11 @@ else
             </MudItem>
 
             <MudItem xs="3" sm="3" md="3" lg="3" Class="d-flex flex-column align-center justify-center">
-                <MudDatePicker Required="true" Label="Start date" Variant="Variant.Outlined" DateFormat="dd/MM/yyyy" ShowWeekNumbers="true" @bind-Date="multipleStartDate"/>
+                <MudDatePicker Required="true" Label="Start date" Variant="Variant.Outlined" DateFormat="dd/MM/yyyy" ShowWeekNumbers="true" @bind-Date="_multipleStartDate"/>
             </MudItem>
 
             <MudItem xs="3" sm="3" md="3" lg="3">
-                <MudNumericField Required="true" @bind-Value="monthlyInvestment" Label="Monthly investment" Variant="Variant.Text" Min="0" Max="999999999" />
+                <MudNumericField Required="true" @bind-Value="_monthlyInvestment" Label="Monthly investment" Variant="Variant.Text" Min="0" Max="999999999" />
             </MudItem>
 
             <MudItem xs="3" sm="3" md="3" lg="3" Class="d-flex flex-column align-center justify-center">
@@ -119,11 +129,11 @@ else
 </MudPaper>
 
 
-@if (multipleInvestmentDataList.Any())
+@if (_multipleInvestmentDataList.Any())
 {
     <MudGrid>
         <MudItem xs="12">
-            <MudTable Class="px-4 py-8 mud-height-full" MultiSelection="false" T="InvestmentData" Items="@multipleInvestmentDataList">
+            <MudTable Class="px-4 py-8 mud-height-full" MultiSelection="false" T="InvestmentData" Items="@_multipleInvestmentDataList">
                 <HeaderContent>
                     <MudTh>Start Date</MudTh>
                     <MudTh>Invested Amount</MudTh>
@@ -132,7 +142,7 @@ else
                     <MudTh>ROI</MudTh>
                 </HeaderContent>
                 <RowTemplate>
-                    <MudTd>@context.Date.ToShortDateString()</MudTd>
+                    <MudTd>@context.Date?.ToShortDateString()</MudTd>
                     <MudTd>@context.InvestedAmount</MudTd>
                     <MudTd>@context.CryptoAmount.ToString("F10")</MudTd>
                     <MudTd>@context.ValueToday.ToString("F2")</MudTd>
@@ -163,11 +173,11 @@ else
     #endregion
 
     #region MULTIPLE DCA
-    private IEnumerable<int> selectedCryptoIds = new List<int>();
-    private DateTime? multipleStartDate = null;
+    private IEnumerable<int> _selectedCryptoIds = new List<int>();
+    private DateTime? _multipleStartDate = null;
     private DateTime? _multipleEndDate = DateTime.Today;
-    private decimal monthlyInvestment = 200;
-    private List<InvestmentData> multipleInvestmentDataList = new List<InvestmentData>();
+    private decimal _monthlyInvestment = 200;
+    private List<InvestmentData> _multipleInvestmentDataList = new List<InvestmentData>();
     #endregion
 
     protected override async Task OnInitializedAsync()
@@ -195,66 +205,65 @@ else
         _investmentPlans.Add(new InvestmentPlan
             {
                 MonthlyInvestment = 100,
-                IsValidStartDate = true
+                IsValidStartDate = true,
+                StartDate = DateTime.Today,
             });
     }
 
-    public async Task CalculateDCAInvestment()
-    {        
-        try
+public async Task CalculateDCAInvestment()
+{
+    try
+    {
+        var client = HttpClientFactory.CreateClient("CryptoCalculator");
+        _investmentDataList.Clear();
+
+        foreach (var plan in _investmentPlans)
         {
-            @if (_startDate.HasValue && (_startDate.Value.Day == 15 || _startDate.Value.Day == 20 || _startDate.Value.Day == 25))
+            if (plan.StartDate != null && (plan.StartDate?.Day == 15 || plan.StartDate?.Day == 20 || plan.StartDate?.Day == 25))
             {
-                var client = HttpClientFactory.CreateClient("CryptoCalculator");
-                _investmentDataList.Clear();
+                var url = $"api/dca/calculate?cryptoIds={plan.CryptoId}&startDates={plan.StartDate:yyyy-MM-dd}&monthlyInvestments={plan.MonthlyInvestment}&endDate={_endDate:yyyy-MM-dd}";
+                var investmentData = await client.GetFromJsonAsync<List<InvestmentData>>(url);
 
-                foreach (var plan in _investmentPlans)
+                if (investmentData != null)
                 {
-                    plan.StartDate = _startDate ?? DateTime.Now;
-                    var url = $"api/dca/calculate?cryptoIds={plan.CryptoId}&startDates={plan.StartDate:yyyy-MM-dd}&monthlyInvestments={plan.MonthlyInvestment}&endDate={_endDate:yyyy-MM-dd}";
-                    var investmentData = await client.GetFromJsonAsync<List<InvestmentData>>(url);
-
-                    if (investmentData != null)
-                    {
-                        _investmentDataList.AddRange(investmentData);
-                        Snackbar.Add("Success", Severity.Success);
-                    }
+                    _investmentDataList.AddRange(investmentData);
+                    Snackbar.Add("Success", Severity.Success);
                 }
             }
             else
             {
-                Snackbar.Add("Please chose one of 15th, 20th or 25th day of the month", Severity.Error);
+                Snackbar.Add("Please choose one of the 15th, 20th, or 25th day of the month", Severity.Error);
             }
-
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex.Message);
         }
     }
+    catch (Exception ex)
+    {
+        Console.WriteLine(ex.Message);
+    }
+}
 
     public async Task CalculateDCAInvestmentForMultipleCryptos()
     {
         try
         {
-            @if (multipleStartDate.HasValue && (multipleStartDate.Value.Day == 15 || multipleStartDate.Value.Day == 20 || multipleStartDate.Value.Day == 25))
+            @if (_multipleStartDate.HasValue && (_multipleStartDate.Value.Day == 15 || _multipleStartDate.Value.Day == 20 || _multipleStartDate.Value.Day == 25))
             {
                 var client = HttpClientFactory.CreateClient("CryptoCalculator");
-                multipleInvestmentDataList.Clear();
+                _multipleInvestmentDataList.Clear();
 
-                var cryptoIds = string.Join("&", selectedCryptoIds.Select(id => $"cryptoIds={Uri.EscapeDataString(id.ToString())}"));
-                var startDate = Uri.EscapeDataString((multipleStartDate ?? DateTime.Today).ToString("yyyy-MM-dd"));
+                var cryptoIds = string.Join("&", _selectedCryptoIds.Select(id => $"cryptoIds={Uri.EscapeDataString(id.ToString())}"));
+                var startDate = Uri.EscapeDataString((_multipleStartDate ?? DateTime.Today).ToString("yyyy-MM-dd"));
                 var endDate = Uri.EscapeDataString((_multipleEndDate ?? DateTime.Today).ToString("yyyy-MM-dd"));
 
-                var selectedCryptoIdsList = selectedCryptoIds.ToList();
+                var selectedCryptoIdsList = _selectedCryptoIds.ToList();
                 var investmentShares = string.Join("&", selectedCryptoIdsList.Select(id => $"investmentShares={Uri.EscapeDataString((100 / selectedCryptoIdsList.Count).ToString())}"));
 
-                var url = $"api/dca/calculate-multiple?{cryptoIds}&startDate={startDate}&endDate={endDate}&monthlyInvestment={monthlyInvestment}&{investmentShares}";
+                var url = $"api/dca/calculate-multiple?{cryptoIds}&startDate={startDate}&endDate={endDate}&monthlyInvestment={_monthlyInvestment}&{investmentShares}";
                 var investmentData = await client.GetFromJsonAsync<List<InvestmentData>>(url);
 
                 if (investmentData != null)
                 {
-                    multipleInvestmentDataList.AddRange(investmentData);
+                    _multipleInvestmentDataList.AddRange(investmentData);
                 }
             }
             else
