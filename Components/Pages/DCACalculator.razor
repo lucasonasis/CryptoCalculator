@@ -22,7 +22,7 @@
             </MudItem>
 
             <MudItem xs="3" sm="3" md="3" lg="3" Class="d-flex flex-column align-center justify-center">
-                <MudDatePicker Required="true" Label="Start date" Variant="Variant.Outlined" DateFormat="dd/MM/yyyy" ShowWeekNumbers="true" @bind-Value="plan.StartDate"/>
+                    <MudDatePicker Required="true" Label="Start date" Variant="Variant.Outlined" DateFormat="dd/MM/yyyy" ShowWeekNumbers="true" @bind-Date="_startDate"/>
             </MudItem>
 
             <MudItem xs="3" sm="3" md="3" lg="3">
@@ -56,7 +56,7 @@
                     <MudTh>Start Date</MudTh>
                     <MudTh>Invested Amount</MudTh>
                     <MudTh>Crypto Amount</MudTh>
-                    <MudTh>Value Today</MudTh>
+                    <MudTh>Value Today EUR</MudTh>
                     <MudTh>ROI</MudTh>
                 </HeaderContent>
                 <RowTemplate>
@@ -73,7 +73,7 @@
 else
 {
     <MudPaper style="margin:20px; padding:10px">
-        <h6>No investment data found.</h6>
+        <h4>No investment data found.</h4>
     </MudPaper>
 
 }
@@ -97,7 +97,7 @@ else
             </MudItem>
 
             <MudItem xs="3" sm="3" md="3" lg="3" Class="d-flex flex-column align-center justify-center">
-                <MudDatePicker Required="true" Label="Start date" Variant="Variant.Outlined" DateFormat="dd/MM/yyyy" ShowWeekNumbers="true" @bind-Value="multipleStartDate" />
+                <MudDatePicker Required="true" Label="Start date" Variant="Variant.Outlined" DateFormat="dd/MM/yyyy" ShowWeekNumbers="true" @bind-Date="multipleStartDate"/>
             </MudItem>
 
             <MudItem xs="3" sm="3" md="3" lg="3">
@@ -128,7 +128,7 @@ else
                     <MudTh>Start Date</MudTh>
                     <MudTh>Invested Amount</MudTh>
                     <MudTh>Crypto Amount</MudTh>
-                    <MudTh>Value Today</MudTh>
+                    <MudTh>Value Today EUR</MudTh>
                     <MudTh>ROI</MudTh>
                 </HeaderContent>
                 <RowTemplate>
@@ -145,7 +145,7 @@ else
 else
 {
     <MudPaper style="margin:20px; padding:10px">
-        <h6>No investment data for portfolio selected.</h6>
+        <h4>No investment data for portfolio selected.</h4>
     </MudPaper>
 }
 
@@ -153,15 +153,18 @@ else
 
 @code {
     #region SINGLE DCA
+    private DateTime? _startDate =  null;
     private DateTime? _endDate = DateTime.Today;
     private List<CryptoCurrency> _cryptos = new List<CryptoCurrency>();
     private List<InvestmentData> _investmentDataList = new List<InvestmentData>();
     private List<InvestmentPlan> _investmentPlans = new List<InvestmentPlan>();
+
+
     #endregion
 
     #region MULTIPLE DCA
     private IEnumerable<int> selectedCryptoIds = new List<int>();
-    private DateTime multipleStartDate;
+    private DateTime? multipleStartDate = null;
     private DateTime? _multipleEndDate = DateTime.Today;
     private decimal monthlyInvestment = 200;
     private List<InvestmentData> multipleInvestmentDataList = new List<InvestmentData>();
@@ -191,7 +194,6 @@ else
     {
         _investmentPlans.Add(new InvestmentPlan
             {
-                StartDate = DateTime.Today,
                 MonthlyInvestment = 100,
                 IsValidStartDate = true
             });
@@ -201,20 +203,29 @@ else
     {        
         try
         {
-            var client = HttpClientFactory.CreateClient("CryptoCalculator");
-            _investmentDataList.Clear();
-
-            foreach (var plan in _investmentPlans)
+            @if (_startDate.HasValue && (_startDate.Value.Day == 15 || _startDate.Value.Day == 20 || _startDate.Value.Day == 25))
             {
-                var url = $"api/dca/calculate?cryptoIds={plan.CryptoId}&startDates={plan.StartDate:yyyy-MM-dd}&monthlyInvestments={plan.MonthlyInvestment}&endDate={_endDate:yyyy-MM-dd}";
-                var investmentData = await client.GetFromJsonAsync<List<InvestmentData>>(url);
+                var client = HttpClientFactory.CreateClient("CryptoCalculator");
+                _investmentDataList.Clear();
 
-                if (investmentData != null)
+                foreach (var plan in _investmentPlans)
                 {
-                    _investmentDataList.AddRange(investmentData);
-                    Snackbar.Add("Success", Severity.Success);
+                    plan.StartDate = _startDate ?? DateTime.Now;
+                    var url = $"api/dca/calculate?cryptoIds={plan.CryptoId}&startDates={plan.StartDate:yyyy-MM-dd}&monthlyInvestments={plan.MonthlyInvestment}&endDate={_endDate:yyyy-MM-dd}";
+                    var investmentData = await client.GetFromJsonAsync<List<InvestmentData>>(url);
+
+                    if (investmentData != null)
+                    {
+                        _investmentDataList.AddRange(investmentData);
+                        Snackbar.Add("Success", Severity.Success);
+                    }
                 }
             }
+            else
+            {
+                Snackbar.Add("Please chose one of 15th, 20th or 25th day of the month", Severity.Error);
+            }
+
         }
         catch (Exception ex)
         {
@@ -226,35 +237,36 @@ else
     {
         try
         {
-            var client = HttpClientFactory.CreateClient("CryptoCalculator");
-            multipleInvestmentDataList.Clear();
-
-            var cryptoIds = string.Join("&", selectedCryptoIds.Select(id => $"cryptoIds={Uri.EscapeDataString(id.ToString())}"));
-            var startDate = Uri.EscapeDataString(multipleStartDate.ToString("yyyy-MM-dd"));
-            var endDate = Uri.EscapeDataString((_multipleEndDate ?? DateTime.Today).ToString("yyyy-MM-dd"));
-
-            var selectedCryptoIdsList = selectedCryptoIds.ToList();
-            var investmentShares = string.Join("&", selectedCryptoIdsList.Select(id => $"investmentShares={Uri.EscapeDataString((100 / selectedCryptoIdsList.Count).ToString())}"));
-
-            var url = $"api/dca/calculate-multiple?{cryptoIds}&startDate={startDate}&endDate={endDate}&monthlyInvestment={monthlyInvestment}&{investmentShares}";
-            var investmentData = await client.GetFromJsonAsync<List<InvestmentData>>(url);
-
-            if (investmentData != null)
+            @if (multipleStartDate.HasValue && (multipleStartDate.Value.Day == 15 || multipleStartDate.Value.Day == 20 || multipleStartDate.Value.Day == 25))
             {
-                multipleInvestmentDataList.AddRange(investmentData);
+                var client = HttpClientFactory.CreateClient("CryptoCalculator");
+                multipleInvestmentDataList.Clear();
+
+                var cryptoIds = string.Join("&", selectedCryptoIds.Select(id => $"cryptoIds={Uri.EscapeDataString(id.ToString())}"));
+                var startDate = Uri.EscapeDataString((multipleStartDate ?? DateTime.Today).ToString("yyyy-MM-dd"));
+                var endDate = Uri.EscapeDataString((_multipleEndDate ?? DateTime.Today).ToString("yyyy-MM-dd"));
+
+                var selectedCryptoIdsList = selectedCryptoIds.ToList();
+                var investmentShares = string.Join("&", selectedCryptoIdsList.Select(id => $"investmentShares={Uri.EscapeDataString((100 / selectedCryptoIdsList.Count).ToString())}"));
+
+                var url = $"api/dca/calculate-multiple?{cryptoIds}&startDate={startDate}&endDate={endDate}&monthlyInvestment={monthlyInvestment}&{investmentShares}";
+                var investmentData = await client.GetFromJsonAsync<List<InvestmentData>>(url);
+
+                if (investmentData != null)
+                {
+                    multipleInvestmentDataList.AddRange(investmentData);
+                }
             }
-        }
+            else
+            {
+                Snackbar.Add("Please chose one of 15th, 20th or 25th day of the month", Severity.Error);
+
+            }
+    }
         catch (Exception ex)
         {
             Console.WriteLine(ex.Message);
         }
     }
 
-    private void OnCryptoSelectionChanged(ChangeEventArgs e)
-    {
-        if (e.Value is IEnumerable<string> selectedOptions)
-        {
-            selectedCryptoIds = selectedOptions.Select(int.Parse).ToList();
-        }
-    }
 }
