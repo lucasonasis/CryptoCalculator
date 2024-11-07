@@ -2,6 +2,7 @@ using CryptoCalculator.Components;
 using CryptoCalculator.Services;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
+using Blazored.LocalStorage;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,7 +13,8 @@ builder.Services.AddMudServices();
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddTransient<DCAService>();
-
+builder.Services.AddScoped<DCAService>();
+builder.Services.AddBlazoredLocalStorage();
 
 // Register HttpClient with BaseAddress from configuration
 var baseAddress = builder.Configuration.GetSection("HttpClient:BaseAddress").Value;

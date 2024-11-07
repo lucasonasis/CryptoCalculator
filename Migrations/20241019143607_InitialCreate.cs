@@ -22,29 +22,29 @@ namespace CryptoCalculator.Migrations
                     table.PrimaryKey("PK_CryptoCurrencies", x => x.Id);
                 });
 
-            migrationBuilder.CreateTable(
-                name: "DCAInvestments",
-                columns: table => new
-                {
-                    Id = table.Column<int>(nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    CryptoCurrencyId = table.Column<int>(nullable: false),
-                    InvestmentDate = table.Column<DateTime>(nullable: false),
-                    InvestedAmount = table.Column<decimal>(type: "decimal(18, 2)", nullable: false),
-                    CryptoAmount = table.Column<decimal>(type: "decimal(18, 8)", nullable: false),
-                    ValueToday = table.Column<decimal>(type: "decimal(18, 2)", nullable: false),
-                    ROI = table.Column<decimal>(type: "decimal(18, 2)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_DCAInvestments", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_DCAInvestments_CryptoCurrencies_CryptoCurrencyId",
-                        column: x => x.CryptoCurrencyId,
-                        principalTable: "CryptoCurrencies",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
+            //migrationBuilder.CreateTable(
+            //    name: "DCAInvestments",
+            //    columns: table => new
+            //    {
+            //        Id = table.Column<int>(nullable: false)
+            //            .Annotation("SqlServer:Identity", "1, 1"),
+            //        CryptoCurrencyId = table.Column<int>(nullable: false),
+            //        InvestmentDate = table.Column<DateTime>(nullable: false),
+            //        InvestedAmount = table.Column<decimal>(type: "decimal(18, 2)", nullable: false),
+            //        CryptoAmount = table.Column<decimal>(type: "decimal(18, 8)", nullable: false),
+            //        ValueToday = table.Column<decimal>(type: "decimal(18, 2)", nullable: false),
+            //        ROI = table.Column<decimal>(type: "decimal(18, 2)", nullable: false)
+            //    },
+            //    constraints: table =>
+            //    {
+            //        table.PrimaryKey("PK_DCAInvestments", x => x.Id);
+            //        table.ForeignKey(
+            //            name: "FK_DCAInvestments_CryptoCurrencies_CryptoCurrencyId",
+            //            column: x => x.CryptoCurrencyId,
+            //            principalTable: "CryptoCurrencies",
+            //            principalColumn: "Id",
+            //            onDelete: ReferentialAction.Cascade);
+            //    });
 
             migrationBuilder.CreateTable(
                 name: "PriceData",

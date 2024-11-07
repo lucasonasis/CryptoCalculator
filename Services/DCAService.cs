@@ -84,6 +84,8 @@ namespace CryptoCalculator.Services
             return investmentDataList;
         }
 
+
+
         private async Task ProcessInvestmentPlan(InvestmentPlan plan, DateTime endDate, List<InvestmentData> investmentDataList)
         {
             DateTime? currentDate = plan.StartDate;
