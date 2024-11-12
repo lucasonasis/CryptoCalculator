@@ -41,7 +41,7 @@
         </MudItem>
         <MudItem xs="2" sm="2" md="2" lg="2">
                 <MudItem xs="12" sm="12" md="12" lg="12" Class="d-flex flex-column align-center justify-center">
-                    <MudButton @onclick="async () => await CalculateDCAInvestment()" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.Calculate" Color="Color.Primary">Calculate</MudButton>
+                    <MudButton @onclick="async () => await CalculateDCAInvestment()" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.Calculate" Color="MudBlazor.Color.Primary">Calculate</MudButton>
                 </MudItem>
         </MudItem>
     </MudItem>
@@ -50,7 +50,7 @@
 
 
     <MudItem xs="3" sm="3" md="3" lg="3">
-            <MudButton style="margin:10px" @onclick="AddInvestmentPlan" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.Add" Color="Color.Primary">Add another investment plan</MudButton>
+            <MudButton style="margin:10px" @onclick="AddInvestmentPlan" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.Add" Color="MudBlazor.Color.Primary">Add another investment plan</MudButton>
     </MudItem>
 }
 
@@ -120,7 +120,7 @@ else
 
 
             <MudItem xs="3" sm="3" md="3" lg="3" Class="d-flex flex-column align-center justify-center">
-                <MudButton @onclick="async () => await CalculateDCAInvestmentForMultipleCryptos()" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.Calculate" Color="Color.Primary">Calculate portfolio</MudButton>
+                <MudButton @onclick="async () => await CalculateDCAInvestmentForMultipleCryptos()" Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.Calculate" Color="MudBlazor.Color.Primary">Calculate portfolio</MudButton>
             </MudItem>
         </MudItem>
     }

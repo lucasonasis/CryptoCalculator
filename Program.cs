@@ -3,6 +3,7 @@ using CryptoCalculator.Services;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
 using Blazored.LocalStorage;
+using ApexCharts;
 
 var builder = WebApplication.CreateBuilder(args);
 
